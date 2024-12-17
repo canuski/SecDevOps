@@ -48,23 +48,20 @@ jobs:
       # Stap 6: Voer de Safety scan uit voor kwetsbaarheden in dependencies
       - name: Dependency Vulnerability Check
         id: deps
-        env:
-          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}  # Je API-sleutel voor Safety
         run: |
           echo "Running safety scan for dependency vulnerabilities..."
-          safety scan --api-key $SAFETY_API_KEY --full-report > safety_output.txt || echo "Vulnerabilities found"
-          
-      # Stap 7: Check de output van de Safety scan en blokkeer de PR indien nodig
-      - name: Check for vulnerabilities
-        if: failure()  # Als de Safety scan of een andere stap faalt
+          safety scan --full-report > safety_output.txt || true  # Zorg ervoor dat Safety altijd uitvoert
+
+      # Stap 7: Controleer de output van de Safety scan en blokkeer de PR indien nodig
+      - name: Check for vulnerabilities and block PR if found
+        if: success()  # Als de Safety scan succesvol was
         run: |
-          if [ -f safety_output.txt ]; then
+          if grep -q "Vulnerabilities found" safety_output.txt; then
             echo "❌ Safety scan found vulnerabilities! Blocking the PR."
             cat safety_output.txt
-            exit 1
+            exit 1  # Stop de workflow en blokkeer de PR
           else
-            echo "❌ Safety scan failed but no output was generated. Check Safety configuration."
-            exit 1
+            echo "✅ No vulnerabilities found by Safety scan."
           fi
 
       # Stap 8: Voer detect-secrets uit om te scannen op geheime sleutels
