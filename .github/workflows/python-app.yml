@@ -73,9 +73,15 @@ jobs:
           fi
 
       # Step 8: Run detect-secrets to scan for secrets
-
       - name: Secret detection
-        run: |
-          echo "Running detect-secrets scan..."
-          detect-secrets scan --no-interaction > .secrets.baseline || echo "Secrets scan failed"
-          detect-secrets audit --no-interaction .secrets.baseline || echo "No secrets found"
+      id: secrets
+      run: |
+        echo "Running detect-secrets scan..."
+        detect-secrets scan > .secrets.baseline
+        echo "Checking for secrets..."
+        if grep -q '"hashed_secret"' .secrets.baseline; then
+          echo "❌ Secrets detected in the code! Blocking the PR."
+          exit 1
+        else
+          echo "✅ No secrets detected."
+        fi
