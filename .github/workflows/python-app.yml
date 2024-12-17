@@ -50,8 +50,9 @@ jobs:
       - name: Dependency Vulnerability Check
         id: deps
         run: |
-          echo "Running safety for dependency vulnerabilities..."
-          safety check || true # Mark failures for review
+          echo "Running safety scan for dependency vulnerabilities..."
+          safety scan --full-report || true # Mark failures for review
+    
 
       # Secret detection
       - name: Secret detection
