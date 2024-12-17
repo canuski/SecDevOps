@@ -58,9 +58,16 @@ jobs:
       - name: Secret detection
         id: secrets
         run: |
-          echo "Running detect-secrets..."
-          detect-secrets scan > .secrets.baseline || true
-          detect-secrets audit .secrets.baseline || true
+          echo "Running detect-secrets scan..."
+          detect-secrets scan > .secrets.baseline
+          echo "Checking for secrets..."
+          if grep -q '"hashed_secret"' .secrets.baseline; then
+            echo "❌ Secrets detected in the code! Blocking the PR."
+            exit 1
+          else
+            echo "✅ No secrets detected."
+          fi
+    
 
       # Block PR if any check fails
       - name: Fail on any warnings or errors
