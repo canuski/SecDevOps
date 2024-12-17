@@ -43,7 +43,7 @@ jobs:
       - name: Running Bandit for SAST checks...
         run: |
           echo "Running Bandit for SAST checks..."
-          bandit -r . -ll || true  # Bandit returns 0 if no issues, but can still detect errors
+          bandit -r . -ll  # Bandit returns 0 if no issues, but can still detect errors
 
       # Step 6: Run the Safety scan for dependency vulnerabilities
       - name: Dependency Vulnerability Check
