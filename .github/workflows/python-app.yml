@@ -74,14 +74,14 @@ jobs:
 
       # Step 8: Run detect-secrets to scan for secrets
       - name: Secret detection
-      id: secrets
-      run: |
-        echo "Running detect-secrets scan..."
-        detect-secrets scan > .secrets.baseline
-        echo "Checking for secrets..."
-        if grep -q '"hashed_secret"' .secrets.baseline; then
-          echo "❌ Secrets detected in the code! Blocking the PR."
-          exit 1
-        else
-          echo "✅ No secrets detected."
-        fi
+        id: secrets
+        run: |
+          echo "Running detect-secrets scan..."
+          detect-secrets scan > .secrets.baseline
+          echo "Checking for secrets..."
+          if grep -q '"hashed_secret"' .secrets.baseline; then
+            echo "❌ Secrets detected in the code! Blocking the PR."
+            exit 1
+          else
+            echo "✅ No secrets detected."
+          fi
