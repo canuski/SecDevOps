@@ -73,6 +73,7 @@ jobs:
           fi
 
       # Step 8: Run detect-secrets to scan for secrets
+
       - name: Secret detection
         run: |
           echo "Running detect-secrets scan..."
