@@ -11,5 +11,3 @@ print("hello world8")
 print("hello world9")
 print("hello world10")
 print("hello world11")
-user_input = "2 + 2"
-print("Result:", eval(user_input))  # Kwetsbare code
