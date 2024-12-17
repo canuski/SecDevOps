@@ -57,17 +57,19 @@ jobs:
       # Step 7: Check if vulnerabilities were found in the Safety scan and block the PR
       - name: Check for vulnerabilities
         run: |
+          echo "Checking safety scan output for vulnerabilities..."
           if [ -f safety_output.txt ]; then
-            if grep -q "Vulnerabilities found" safety_output.txt; then
+            # Look for vulnerabilities by checking if the output contains the word 'Found' or any other pattern in the report
+            if grep -q "Found" safety_output.txt; then
               echo "❌ Safety scan found vulnerabilities! Blocking the PR."
               cat safety_output.txt
-              exit 1  # This will block the PR by failing the job
+              exit 1  # Fail the job and block the PR
             else
               echo "✅ No vulnerabilities found in dependencies."
             fi
           else
             echo "❌ Safety scan failed or produced no output. Check Safety configuration."
-            exit 1  # If the Safety scan fails to run or produces no output, block the PR
+            exit 1  # If no output is generated, block the PR
           fi
 
       # Step 8: Run detect-secrets to scan for secrets
