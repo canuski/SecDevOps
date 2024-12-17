@@ -46,14 +46,21 @@ jobs:
           echo "Running Bandit for SAST checks..."
           bandit -r . -ll
 
-      # Dependency security scan
-      - name: Dependency Vulnerability Check
-        id: deps
-        env:
-          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+          - name: Dependency Vulnerability Check
+          id: deps
+          env:
+            SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+          run: |
+            echo "Running safety scan for dependency vulnerabilities..."
+            safety scan --api-key $SAFETY_API_KEY --full-report > safety_output.txt || exit 1
+        
+      - name: Check for vulnerabilities
+        if: failure()
         run: |
-          echo "Running safety scan for dependency vulnerabilities..."
-          safety scan --api-key $SAFETY_API_KEY --full-report || true
+            echo "❌ Safety scan found vulnerabilities! Blocking the PR."
+            cat safety_output.txt
+            exit 1
+        
     
     
 
