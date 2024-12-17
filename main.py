@@ -11,3 +11,5 @@ print("hello world8")
 print("hello world9")
 print("hello world10")
 print("hello world11")
+secret_password = "SuperSecret123"
+print("Hard-coded secret:", secret_password)
