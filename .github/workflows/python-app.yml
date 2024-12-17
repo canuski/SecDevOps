@@ -49,9 +49,12 @@ jobs:
       # Dependency security scan
       - name: Dependency Vulnerability Check
         id: deps
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
         run: |
           echo "Running safety scan for dependency vulnerabilities..."
-          safety scan --full-report || true # Mark failures for review
+          safety scan --api-key $SAFETY_API_KEY --full-report || true
+    
     
 
       # Secret detection
