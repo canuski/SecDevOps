@@ -53,10 +53,10 @@ jobs:
         run: |
           echo "Running safety scan for dependency vulnerabilities..."
           safety scan --api-key $SAFETY_API_KEY --full-report > safety_output.txt || echo "Vulnerabilities found"
-
-      # Stap 7: Controleer de resultaten van de Safety scan
+          
+      # Stap 7: Check de output van de Safety scan en blokkeer de PR indien nodig
       - name: Check for vulnerabilities
-        if: failure()  # Als de vorige stap faalt (wanneer kwetsbaarheden gevonden worden)
+        if: failure()  # Als de Safety scan of een andere stap faalt
         run: |
           if [ -f safety_output.txt ]; then
             echo "❌ Safety scan found vulnerabilities! Blocking the PR."
