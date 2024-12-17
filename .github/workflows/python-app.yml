@@ -6,65 +6,71 @@ on:
   pull_request:
     branches: ["main", "dev"]
   schedule:
-    - cron: "0 0 * * 0"  # Wekelijkse scan op zondag om middernacht
+    - cron: "0 0 * * 0"  # Weekly scan on Sunday at midnight
 
 permissions:
   contents: read
-  security-events: write  # Vereist voor SAST-checks en kwetsbaarheidsanalyse
+  security-events: write  # Required for SAST checks and vulnerability analysis
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Stap 1: Check out de repository
+      # Step 1: Check out the repository
       - uses: actions/checkout@v4
 
-      # Stap 2: Stel Python in
+      # Step 2: Set up Python
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
 
-      # Stap 3: Installeer de dependencies (flake8, bandit, safety, detect-secrets)
+      # Step 3: Install dependencies (flake8, bandit, safety, detect-secrets)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8 bandit safety detect-secrets
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # Stap 4: Linten van de code met flake8
+      # Step 4: Lint code with flake8
       - name: Lint with flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      # Stap 5: Voer de Bandit SAST-scan uit
+      # Step 5: Run Bandit for SAST checks
       - name: Running Bandit for SAST checks...
         run: |
           echo "Running Bandit for SAST checks..."
-          bandit -r . -ll || true  # Bandit retourneert 0 bij geen problemen, maar kan nog steeds fouten detecteren
+          bandit -r . -ll || true  # Bandit returns 0 if no issues, but can still detect errors
 
-      # Stap 6: Voer de Safety scan uit voor kwetsbaarheden in dependencies
+      # Step 6: Run the Safety scan for dependency vulnerabilities
       - name: Dependency Vulnerability Check
         id: deps
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}  # Your Safety API key
         run: |
           echo "Running safety scan for dependency vulnerabilities..."
-          safety scan --full-report > safety_output.txt || true  # Zorg ervoor dat Safety altijd uitvoert
+          safety scan --api-key $SAFETY_API_KEY --full-report > safety_output.txt || echo "Vulnerabilities found"
 
-      # Stap 7: Controleer de output van de Safety scan en blokkeer de PR indien nodig
-      - name: Check for vulnerabilities and block PR if found
-        if: success()  # Als de Safety scan succesvol was
+      # Step 7: Check if vulnerabilities were found in the Safety scan and block the PR
+      - name: Check for vulnerabilities
         run: |
-          if grep -q "Vulnerabilities found" safety_output.txt; then
-            echo "❌ Safety scan found vulnerabilities! Blocking the PR."
-            cat safety_output.txt
-            exit 1  # Stop de workflow en blokkeer de PR
+          if [ -f safety_output.txt ]; then
+            if grep -q "Vulnerabilities found" safety_output.txt; then
+              echo "❌ Safety scan found vulnerabilities! Blocking the PR."
+              cat safety_output.txt
+              exit 1  # This will block the PR by failing the job
+            else
+              echo "✅ No vulnerabilities found in dependencies."
+            fi
           else
-            echo "✅ No vulnerabilities found by Safety scan."
+            echo "❌ Safety scan failed or produced no output. Check Safety configuration."
+            exit 1  # If the Safety scan fails to run or produces no output, block the PR
           fi
 
-      # Stap 8: Voer detect-secrets uit om te scannen op geheime sleutels
+      # Step 8: Run detect-secrets to scan for secrets
       - name: Secret detection
         run: |
           echo "Running detect-secrets scan..."
