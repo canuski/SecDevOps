@@ -1,5 +1,6 @@
-secret_password = "SuperSecret123"
-print("Hard-coded secret:", secret_password)
+# secret test
+# secret_password = "SuperSecret123"
+# print("Hard-coded secret:", secret_password)
 
 # bandit test 
 # user_input = "2 + 2"
